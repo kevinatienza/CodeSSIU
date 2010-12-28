@@ -1,0 +1,27 @@
+<html>
+	<head>
+		<title>{% block title %}{% endblock title %}</title>
+		
+		<link rel="stylesheet" href="css/fileuploader.css" type="text/css"/>
+		{% block extra_css %}{% endblock %}
+		
+		<script type="text/javascript" src="js/jquery-1.4.4.min.js"></script>
+		<script type="text/javascript" src="js/fileuploader.js"></script>
+		
+		<script type="text/javascript">
+			var $j = jQuery.noConflict();
+		</script>
+		
+		{% block extra_js %}{% endblock %}
+	</head>
+	<body>
+		{% block header %}
+		{% endblock header %}
+		
+		{% block content %}
+		{% endblock content %}
+		
+		{% block footer %}
+		{% endblock footer %}
+	</body>
+</html>

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}Upload{% endblock %}
+
+{% block extra_js %}
+	<script type="text/javascript">
+		$j(document).ready(function(){
+			var uploader = new qq.FileUploader({
+				element: $j('#file-uploader')[0],
+				action: '{% url core.views.upload %}'
+			});
+		});
+	</script>
+{% endblock %}
+
+{% block content %}
+	<div id="file-uploader">
+		
+	</div>
+{% endblock %}
