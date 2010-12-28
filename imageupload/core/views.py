@@ -20,11 +20,14 @@ def upload(request):
 			with BufferedReader( BytesIO( request.raw_post_data ) ) as stream:
 				with BufferedWriter( FileIO( abs_temp_filename , "wb" ) ) as destination:
 					foo = stream.read( 1024 )
+					print 'starting to write'
 					while foo:
+						print 'writing'
 						destination.write( foo )
 						foo = stream.read( 1024 )
+					print 'done writing'
 			
-			img = open(abs_temp_filename, 'wb')
+			img = open(abs_temp_filename, 'rb+')
 			Image.objects.create(original_image = File(img))
 						
 			return HttpResponse(json.dumps({'success':'true'}))
