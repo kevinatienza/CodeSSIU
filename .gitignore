@@ -1,3 +1,4 @@
 *.pyc
 uploads
 ikcache
+local_settings.py
