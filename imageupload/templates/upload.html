@@ -34,7 +34,11 @@
 		}
 		
 		function onUploadComplete(id, filename, response){
-			$j('#file-upload-'+id).append(' Upload Success')
+			$j('#file-upload-'+id).html('<img src="'+response['thumbnail_url']+'" /><br/>'+
+										'<a href="#">edit photo</a><br/>'+
+										'<textarea name="caption-'+id+'" placeholder="Caption"></textarea><br/>'+
+										'<input type="text" name="client-"'+id+' placeholder="Clients in this picture..."/><br/>'+
+										'<input type="checkbox" name="display-"'+id+' value="displayed" /> Display this image publicly on my profile');
 		}
 	</script>
 {% endblock %}
