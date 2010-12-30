@@ -4,10 +4,31 @@
 
 {% block extra_js %}
 	<script type="text/javascript">
+		function createProgressBar(id) {
+			var progressDiv = document.createElement("div");
+			progressDiv.id = id;
+			document.body.appendChild(progressDiv);
+		}
+	
+		function onSubmit(id, fileName) {
+			createProgressBar(id);
+		}
+	
+		function onProgress(id, fileName, loaded, total) {
+			//$j(function() {
+			//	$j( "#" + id ).progressbar({
+			//		value: loaded / total * 100
+			//	});
+			//});
+			alert(loaded + '/' + total);	
+		}
+	
 		$j(document).ready(function(){
 			var uploader = new qq.FileUploader({
 				element: $j('#file-uploader')[0],
-				action: '{% url core.views.upload %}'
+				action: '{% url core.views.upload %}',
+				onSubmit: onSubmit,
+				onProgress: onProgress
 			});
 		});
 	</script>
@@ -17,4 +38,5 @@
 	<div id="file-uploader">
 		
 	</div>
+	<div id="progressbar"></div>
 {% endblock %}
