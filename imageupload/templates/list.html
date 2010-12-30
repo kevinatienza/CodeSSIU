@@ -3,5 +3,12 @@
 {% block title %}List{% endblock %}
 
 {% block content %}
-	Test
+	<a href="{% url core.views.upload %}">Upload photos</a>
+	<h3>Photos</h3>
+	{% for image in images %}
+		<p>
+			<img src="{{ image.thumbnail.url }}" /><br/>
+			<a href="{% url core.views.edit image.id %}">edit</a>
+		</p>
+	{% endfor %}
 {% endblock %}

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Edit{% endblock %}
+
+{% block extra_css %}
+	<link rel="stylesheet" href="css/jquery.cropzoom.css" type="text/css"/>
+{% endblock %}
+
+{% block extra_js %}
+	<script type="text/javascript" src="js/jquery.cropzoom.js"></script>
+	
+	<script type="text/javascript">
+		$j(document).ready(function(){
+			var cropzoom = $j('#crop_container').cropzoom({
+				enableZoom:false,
+				width:{{ image.original_image.width }},
+				height:{{ image.original_image.height }},
+				expose:{
+					slidersOrientation: 'horizontal',
+					rotationElement: '#rotate_container'
+				},
+				image:{
+					source:'{{ image.original_image.url }}',
+					width:{{ image.original_image.width }},
+					height: {{ image.original_image.height }},
+					startZoom: 100,
+					snapToContainer: true
+				}
+			});
+			
+			$j('#send_crop').click(function(){
+				cropzoom.send('{% url core.views.edit image.id %}', 'post', {}, function(data){
+																					if(data == '"ok"')
+																						location.reload();
+																				});
+				return false;
+			});
+		});
+		
+	</script>
+{% endblock %}
+
+{% block content %}
+	<h3>Crop</h3>
+	<div id="crop_container"></div>
+	<div id="rotate_container"></div>
+	<button id="send_crop">Crop</button>
+{% endblock %}
