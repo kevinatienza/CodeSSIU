@@ -1,3 +1,4 @@
+from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response
 from django.http import HttpResponse
 from django.core.files import File
@@ -30,7 +31,7 @@ def upload(request):
 			img = open(abs_temp_filename, 'rb+')
 			image = Image.objects.create(original_image = File(img))
 						
-			return HttpResponse(json.dumps({'success':'true', 'thumbnail_url':image.thumbnail.url}))
+			return HttpResponse(json.dumps({'success':'true', 'thumbnail_url':image.thumbnail.url, 'edit_url':reverse('edit', args=[image.id])}))
 		elif 'qqfile' in request.FILES:
 			Image.objects.create(original_image = request.FILES.get('qqfile'))
 			return HttpResponse(json.dumps({'success':'true'}))

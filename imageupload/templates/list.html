@@ -2,8 +2,64 @@
 
 {% block title %}List{% endblock %}
 
+{% block extra_css %}
+	<link rel="stylesheet" href="css/fileuploader.css" type="text/css"/>
+{% endblock %}
+
+{% block extra_js %}
+	<script type="text/javascript" src="js/fileuploader.js"></script>
+	
+	<script type="text/javascript">
+		$j(document).ready(function(){
+			$j("#dialog").dialog({
+				height: 500, 
+				width: 600, 
+				autoOpen: false, 
+				modal:true,
+			});
+			
+			var uploader = new qq.FileUploaderBasic({
+				button: $j('#file-uploader')[0],
+				action: '{% url core.views.upload %}',
+				onSubmit: onUpload,
+				onProgress: onProgress,
+				onComplete: onUploadComplete
+			});
+		});
+		
+		function onUpload(id, filename){
+			$j('#file-list').append('<li id="file-upload-'+id+'">'+filename+'<div id="progressBar' + id + '" style="height:15px; width:200px;"></div></li>');
+			$j( "#progressBar" + id ).progressbar({
+				value: 0
+			});
+		}
+		
+		function onProgress(id, filename, loaded, total) {
+			var percentage = loaded / total * 100
+			$j( "#progressBar" + id ).progressbar("value", percentage);
+		}
+		
+		function onUploadComplete(id, filename, response){
+			$j('#file-upload-'+id).append(' Upload Success <br><img src="' + response.thumbnail_url + '"/> <br><a href="' + response.edit_url + '">Edit</a><br>');
+			$j( "#progressBar" + id ).progressbar("value", 100);
+		}
+	
+		function uploadPhotos() {
+			$j("#dialog").dialog("open");
+		}
+	</script>
+{% endblock %}
+
 {% block content %}
-	<a href="{% url core.views.upload %}">Upload photos</a>
+	<a href="javascript:uploadPhotos()">Upload photos</a>
+	<div id="dialog" title="Upload Photos">
+		<div id="message-preview-box">
+			<div class="qq-upload-button" id="file-uploader">
+				Upload a file
+			</div>
+			<ul id="file-list"></div>
+		</div>
+	</div>
 	<h3>Photos</h3>
 	{% for image in images %}
 		<p>
