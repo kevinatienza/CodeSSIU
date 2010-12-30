@@ -2,7 +2,13 @@
 
 {% block title %}Upload{% endblock %}
 
+{% block extra_css %}
+	<link rel="stylesheet" href="css/fileuploader.css" type="text/css"/>
+{% endblock %}
+
 {% block extra_js %}
+	<script type="text/javascript" src="js/fileuploader.js"></script>
+
 	<script type="text/javascript">
 		$j(document).ready(function(){
 			var uploader = new qq.FileUploader({
