@@ -11,16 +11,27 @@
 
 	<script type="text/javascript">
 		$j(document).ready(function(){
-			var uploader = new qq.FileUploader({
-				element: $j('#file-uploader')[0],
-				action: '{% url core.views.upload %}'
+			var uploader = new qq.FileUploaderBasic({
+				button: $j('#file-uploader')[0],
+				action: '{% url core.views.upload %}',
+				onSubmit: onUpload,
+				onComplete: onUploadComplete
 			});
 		});
+		
+		function onUpload(id, filename){
+			$j('#file-list').append('<li id="file-upload-'+id+'">'+filename+'</li>')
+		}
+		
+		function onUploadComplete(id, filename, response){
+			$j('#file-upload-'+id).append(' Upload Success')
+		}
 	</script>
 {% endblock %}
 
 {% block content %}
-	<div id="file-uploader">
-		
+	<div class="qq-upload-button" id="file-uploader">
+		Upload a file
 	</div>
+	<ul id="file-list"></div>
 {% endblock %}

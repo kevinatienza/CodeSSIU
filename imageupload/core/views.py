@@ -28,9 +28,9 @@ def upload(request):
 						foo = stream.read( 1024 )
 			
 			img = open(abs_temp_filename, 'rb+')
-			Image.objects.create(original_image = File(img))
+			image = Image.objects.create(original_image = File(img))
 						
-			return HttpResponse(json.dumps({'success':'true'}))
+			return HttpResponse(json.dumps({'success':'true', 'thumbnail_url':image.thumbnail.url}))
 		elif 'qqfile' in request.FILES:
 			Image.objects.create(original_image = request.FILES.get('qqfile'))
 			return HttpResponse(json.dumps({'success':'true'}))
