@@ -10,27 +10,26 @@
 	<script type="text/javascript" src="js/fileuploader.js"></script>
 
 	<script type="text/javascript">
-		function createProgressBar(id) {
-			var progressDiv = document.createElement("div");
-			progressDiv.id = id;
-			document.body.appendChild(progressDiv);
-		}
-	
-		function onSubmit(id, fileName) {
-			createProgressBar(id);
-		}
-	
 		$j(document).ready(function(){
 			var uploader = new qq.FileUploaderBasic({
 				button: $j('#file-uploader')[0],
 				action: '{% url core.views.upload %}',
 				onSubmit: onUpload,
+				onProgress: onProgress,
 				onComplete: onUploadComplete
 			});
 		});
 		
 		function onUpload(id, filename){
-			$j('#file-list').append('<li id="file-upload-'+id+'">'+filename+'</li>')
+			$j('#file-list').append('<li id="file-upload-'+id+'">'+filename+'<div id="progressBar' + id + '" style="height:15px; width:200px;"></div></li>');
+			$j( "#progressBar" + id ).progressbar({
+				value: 0
+			});
+		}
+		
+		function onProgress(id, filename, loaded, total) {
+			var percentage = loaded / total * 100
+			$j( "#progressBar" + id ).progressbar("value", percentage);
 		}
 		
 		function onUploadComplete(id, filename, response){
@@ -39,6 +38,7 @@
 										'<textarea name="caption-'+id+'" placeholder="Caption"></textarea><br/>'+
 										'<input type="text" name="client-"'+id+' placeholder="Clients in this picture..."/><br/>'+
 										'<input type="checkbox" name="display-"'+id+' value="displayed" /> Display this image publicly on my profile');
+			$j( "#progressBar" + id ).progressbar("value", 100);
 		}
 	</script>
 {% endblock %}
