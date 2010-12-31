@@ -30,7 +30,7 @@
 			});
 			
 			$j('#upload_save').click(function(){
-				$j.get(upload_save_url);
+				$j.ajax({async: false, url: upload_save_url, data: $j('#upload_form').serializeArray(), type:'POST'});
 				closeUploadDialog();
 				location.reload();
 			});
@@ -87,9 +87,10 @@
 			uploadingSize--;
 			$j('#file-upload-'+id).html('<img src="'+response['thumbnail_url']+'" /><br/>'+
 										'<a href="' + response.edit_url + '">edit photo</a><br/>'+
+										'<input type="hidden" name="id-'+id+'" value="'+response['id']+'" />'+
 										'<textarea name="caption-'+id+'" placeholder="Caption"></textarea><br/>'+
-										'<input type="text" name="client-"'+id+' placeholder="Clients in this picture..."/><br/>'+
-										'<input type="checkbox" name="display-"'+id+' value="displayed" /> Display this image publicly on my profile');
+										'<input type="text" name="client-'+id+'" placeholder="Clients in this picture..."/><br/>'+
+										'<input type="checkbox" name="display-'+id+'" value="displayed" /> Display this image publicly on my profile');
 			$j( "#progressBar" + id ).progressbar("value", 100);
 		}
 	
@@ -124,7 +125,9 @@
 			<div class="qq-upload-button" id="file-uploader">
 				Upload a file
 			</div>
-			<ul id="file-list"></ul>
+			<form id="upload_form">
+				<ul id="file-list"></ul>
+			</form>
 
 			<button id="upload_save">Save</button>
 			<button id="upload_cancel">Cancel</button>
@@ -134,7 +137,10 @@
 	{% for image in images %}
 		<p>
 			<img src="{{ image.thumbnail.url }}" /><br/>
-			<a href="{% url core.views.edit image.id %}">edit</a>
+			<a href="{% url core.views.edit image.id %}">edit</a><br/>
+			Caption: {{ image.caption }}<br/>
+			Client: {{ image.client }}<br/>
+			Display: {{ image.display }}
 		</p>
 	{% endfor %}
 {% endblock %}

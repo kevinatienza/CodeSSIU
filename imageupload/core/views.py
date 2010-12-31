@@ -35,7 +35,7 @@ def upload(request):
 			img = open(abs_temp_filename, 'rb+')
 			image = Image.objects.create(original_image = File(img), upload_batch = UploadBatch.objects.get(id = upload_batch_id))
 						
-			return HttpResponse(json.dumps({'success':'true', 'thumbnail_url':image.thumbnail.url, 'edit_url':reverse('edit', args=[image.id])}))
+			return HttpResponse(json.dumps({'success':'true', 'id':image.id, 'thumbnail_url':image.thumbnail.url, 'edit_url':reverse('edit', args=[image.id])}))
 		elif 'qqfile' in request.FILES:
 			Image.objects.create(original_image = request.FILES.get('qqfile'))
 			return HttpResponse(json.dumps({'success':'true'}))
@@ -82,6 +82,14 @@ def save_upload(request, upload_batch_id):
 		upload_batch = UploadBatch.objects.get(id = upload_batch_id, user = request.user)
 	except UploadBatch.DoesNotExist:
 		return HttpResponse(json.dumps('does not exist'))
+	
+	for i in range(upload_batch.image_set.count()):
+		image_id = request.POST.get('id-%d' % i)
+		image = Image.objects.get(id = image_id)
+		image.caption = request.POST.get('caption-%d' % i)
+		image.client = request.POST.get('client-%d' % i)
+		image.display = request.POST.get('display-%d' % i, False) is not False
+		image.save()
 		
 	upload_batch.saved = True
 	upload_batch.save()
