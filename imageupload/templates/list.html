@@ -10,6 +10,10 @@
 	<script type="text/javascript" src="js/fileuploader.js"></script>
 	
 	<script type="text/javascript">
+		var upload_batch_id = null,
+			upload_save_url = null,
+			upload_cancel_url = null;
+		
 		$j(document).ready(function(){
 			$j("#dialog").dialog({
 				height: 500, 
@@ -18,14 +22,22 @@
 				modal:true,
 			});
 			
-			var uploader = new qq.FileUploaderBasic({
-				button: $j('#file-uploader')[0],
-				action: '{% url core.views.upload %}',
-				onSubmit: onUpload,
-				onProgress: onProgress,
-				onComplete: onUploadComplete
+			$j('#upload_save').click(function(){
+				$j.get(upload_save_url);
+				closeUploadDialog();
+				location.reload();
+			});
+			
+			$j('#upload_cancel').click(function(){
+				$j.get(upload_cancel_url);
+				closeUploadDialog();
 			});
 		});
+		
+		function closeUploadDialog(){
+			$j('#dialog').dialog('close');
+			$j('#file-list').html('');
+		}
 		
 		function onUpload(id, filename){
 			$j('#file-list').append('<li id="file-upload-'+id+'">'+filename+'<div id="progressBar' + id + '" style="height:15px; width:200px;"></div></li>');
@@ -50,6 +62,23 @@
 	
 		function uploadPhotos() {
 			$j("#dialog").dialog("open");
+			
+			$j.post('{% url core.views.start_upload_batch %}', {}, setUploadBatch, 'json');
+		}
+		
+		function setUploadBatch(data){
+			upload_batch_id = data['upload_batch_id'];
+			upload_save_url = data['upload_save_url'];
+			upload_cancel_url = data['upload_cancel_url'];
+			
+			var uploader = new qq.FileUploaderBasic({
+				button: $j('#file-uploader')[0],
+				action: '{% url core.views.upload %}',
+				params: {'upload_batch_id': data['upload_batch_id']},
+				onSubmit: onUpload,
+				onProgress: onProgress,
+				onComplete: onUploadComplete
+			});
 		}
 	</script>
 {% endblock %}
@@ -61,7 +90,9 @@
 			<div class="qq-upload-button" id="file-uploader">
 				Upload a file
 			</div>
-			<ul id="file-list"></div>
+			<ul id="file-list"></ul>
+			<button id="upload_save">Save</button>
+			<button id="upload_cancel">Cancel</button>
 		</div>
 	</div>
 	<h3>Photos</h3>

@@ -12,6 +12,7 @@ urlpatterns = patterns('',
     # (r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
     (r'^admin/', include(admin.site.urls)),
+    (r'^accounts/login/', 'django.contrib.auth.views.login'),
     (r'^', include('imageupload.core.urls')),
 )
 

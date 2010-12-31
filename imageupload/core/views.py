@@ -1,8 +1,9 @@
+from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response
 from django.http import HttpResponse
 from django.core.files import File
-from models import Image
+from models import Image, UploadBatch
 from io import BufferedReader, BufferedWriter, BytesIO, FileIO
 import Image as PILImage
 import settings
@@ -10,14 +11,17 @@ import json
 import time
 import os
 
+@login_required
 def list(request):
-	images = Image.objects.all()
+	images = Image.objects.filter(upload_batch__user = request.user, upload_batch__saved = True).order_by('-upload_batch__creation_time', 'id')
 	
 	return render_to_response('list.html', locals())
 
+@login_required
 def upload(request):
 	if request.method == 'POST':
 		if 'qqfile' in request.GET: # upload is via XMLHttpRequest
+			upload_batch_id = request.GET.get('upload_batch_id')
 			temp_filename = '%s-%s' % (time.time(), request.GET.get('qqfile'))
 			abs_temp_filename = os.path.join('/tmp', temp_filename)
 			
@@ -29,7 +33,7 @@ def upload(request):
 						foo = stream.read( 1024 )
 			
 			img = open(abs_temp_filename, 'rb+')
-			image = Image.objects.create(original_image = File(img))
+			image = Image.objects.create(original_image = File(img), upload_batch = UploadBatch.objects.get(id = upload_batch_id))
 						
 			return HttpResponse(json.dumps({'success':'true', 'thumbnail_url':image.thumbnail.url, 'edit_url':reverse('edit', args=[image.id])}))
 		elif 'qqfile' in request.FILES:
@@ -38,6 +42,7 @@ def upload(request):
 	
 	return render_to_response('upload.html')
 
+@login_required
 def edit(request, image_id):
 	image = Image.objects.get(id = image_id)
 	
@@ -58,3 +63,38 @@ def edit(request, image_id):
 		return HttpResponse(json.dumps('ok'))
 	
 	return render_to_response('edit.html', locals())
+
+@login_required
+def start_upload_batch(request):
+	upload_batch = UploadBatch.objects.create(user = request.user)
+	
+	data =	{
+				'upload_batch_id': upload_batch.id,
+				'upload_save_url': reverse('save_upload', args = [upload_batch.id]),
+				'upload_cancel_url': reverse('cancel_upload', args = [upload_batch.id]),
+			}
+	
+	return HttpResponse(json.dumps(data))
+
+@login_required
+def save_upload(request, upload_batch_id):
+	try:
+		upload_batch = UploadBatch.objects.get(id = upload_batch_id, user = request.user)
+	except UploadBatch.DoesNotExist:
+		return HttpResponse(json.dumps('does not exist'))
+		
+	upload_batch.saved = True
+	upload_batch.save()
+	
+	return HttpResponse(json.dumps('ok'))
+
+@login_required
+def cancel_upload(request, upload_batch_id):
+	try:
+		upload_batch = UploadBatch.objects.get(id = upload_batch_id, user = request.user)
+	except UploadBatch.DoesNotExist:
+		return HttpResponse(json.dumps('does not exist'))
+		
+	upload_batch.delete()
+	
+	return HttpResponse(json.dumps('ok'))
