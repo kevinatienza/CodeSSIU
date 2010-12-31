@@ -18,7 +18,8 @@
 		    uploadTransferRate = new Array(),
 		    remainingBytes = new Array(),
 		    averageUploadTransferRate = 0.0,
-		    totalBytesLeft = 0.0;
+		    totalBytesLeft = 0.0,
+			uploadingSize = 0;
 
 		$j(document).ready(function(){
 			$j("#dialog").dialog({
@@ -52,39 +53,38 @@
 			});
 			starttime[id] = new Date().getTime() / 1000;
 			bytesTransfered[id] = 0;
+			uploadingSize++;
 		}
 		
 		function onProgress(id, filename, loaded, total) {
 			var percentage = loaded / total * 100;
 			var currentBytesTransfered = loaded - bytesTransfered[id];
 			bytesTransfered[id] = loaded;
-			uploadTransferRate[id] = currentBytesTransfered / (new Date().getTime() / 1000.0 - starttime[id]) //bytes per second
+			uploadTransferRate[id] = currentBytesTransfered / (new Date().getTime() / 1000.0 - starttime[id]); //bytes per second
 			remainingBytes[id] = total - loaded;
 			totalBytesLeft = 0.0;
 			var totalUploadTransferRate = 0.0;
-			var uploadingSize = 0; //The number of remaining files to upload
 			for(i=0; i < remainingBytes.length; i++) {
 				totalBytesLeft += remainingBytes[i];
 				// Count only the files not are not yet uploaded
-				if(uploadTransferRate[i] != 0) {
+				if(uploadTransferRate[i] > 0.000001) {
 					totalUploadTransferRate += uploadTransferRate[i];
-					uploadingSize++;
 				}
 			}
 			// If uploading all the files is not yet finished...
-			if(uploadingSize > 0) {
+			if(uploadingSize > 0 && totalUploadTransferRate > 0) {
 				averageUploadTransferRate = totalUploadTransferRate / uploadingSize;
-				var time_left = totalBytesLeft / averageUploadTransferRate;
+				var time_left = Math.floor(totalBytesLeft / averageUploadTransferRate);
 				$j("#time-left").text("Uploading " + uploadingSize + " files - approx " + time_left + " seconds left.");
 			}
 			else {
 				$j("#time-left").text("Uploading completed");
 			}
-			
 			$j( "#progressBar" + id ).progressbar("value", percentage);
 		}
 		
 		function onUploadComplete(id, filename, response){
+			uploadingSize--;
 			$j('#file-upload-'+id).html('<img src="'+response['thumbnail_url']+'" /><br/>'+
 										'<a href="' + response.edit_url + '">edit photo</a><br/>'+
 										'<textarea name="caption-'+id+'" placeholder="Caption"></textarea><br/>'+
