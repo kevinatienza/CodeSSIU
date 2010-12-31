@@ -10,6 +10,13 @@
 	<script type="text/javascript" src="js/fileuploader.js"></script>
 	
 	<script type="text/javascript">
+		var starttime = new Array();
+		var bytesTransfered = new Array();
+		var uploadTransferRate = new Array();
+		var remainingBytes = new Array();
+		var averageUploadTransferRate = 0.0;
+		var totalBytesLeft = 0.0;
+	
 		$j(document).ready(function(){
 			$j("#dialog").dialog({
 				height: 500, 
@@ -32,10 +39,37 @@
 			$j( "#progressBar" + id ).progressbar({
 				value: 0
 			});
+			starttime[id] = new Date().getTime() / 1000;
+			bytesTransfered[id] = 0;
 		}
 		
 		function onProgress(id, filename, loaded, total) {
-			var percentage = loaded / total * 100
+			var percentage = loaded / total * 100;
+			var currentBytesTransfered = loaded - bytesTransfered[id];
+			bytesTransfered[id] = loaded;
+			uploadTransferRate[id] = currentBytesTransfered / (new Date().getTime() / 1000.0 - starttime[id]) //bytes per second
+			remainingBytes[id] = total - loaded;
+			totalBytesLeft = 0.0;
+			var totalUploadTransferRate = 0.0;
+			var uploadingSize = 0; //The number of remaining files to upload
+			for(i=0; i < remainingBytes.length; i++) {
+				totalBytesLeft += remainingBytes[i];
+				// Count only the files not are not yet uploaded
+				if(uploadTransferRate[i] != 0) {
+					totalUploadTransferRate += uploadTransferRate[i];
+					uploadingSize++;
+				}
+			}
+			// If uploading all the files is not yet finished...
+			if(uploadingSize > 0) {
+				averageUploadTransferRate = totalUploadTransferRate / uploadingSize;
+				var time_left = totalBytesLeft / averageUploadTransferRate;
+				$j("#time-left").text("Uploading " + uploadingSize + " files - approx " + time_left + " seconds left.");
+			}
+			else {
+				$j("#time-left").text("Uploading completed");
+			}
+			
 			$j( "#progressBar" + id ).progressbar("value", percentage);
 		}
 		
@@ -58,10 +92,11 @@
 	<a href="javascript:uploadPhotos()">Upload photos</a>
 	<div id="dialog" title="Upload Photos">
 		<div id="message-preview-box">
+			<p id="time-left"></p>
 			<div class="qq-upload-button" id="file-uploader">
 				Upload a file
 			</div>
-			<ul id="file-list"></div>
+			<ul id="file-list"></ul>
 		</div>
 	</div>
 	<h3>Photos</h3>
