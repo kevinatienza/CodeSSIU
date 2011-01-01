@@ -109,6 +109,7 @@
 				button: $j('#file-uploader')[0],
 				action: '{% url core.views.upload %}',
 				params: {'upload_batch_id': data['upload_batch_id']},
+				allowedExtensions: ['jpg', 'jpeg', 'png', 'gif', 'bmp'],
 				onSubmit: onUpload,
 				onProgress: onProgress,
 				onComplete: onUploadComplete

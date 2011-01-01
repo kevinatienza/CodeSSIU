@@ -31,10 +31,18 @@ def upload(request):
 					while foo:
 						destination.write( foo )
 						foo = stream.read( 1024 )
+					destination.flush()
 			
 			img = open(abs_temp_filename, 'rb+')
+			
+			try:
+				pil_image = PILImage.open(img)
+				pil_image.verify()
+			except IOError:
+				return HttpResponse(json.dumps({'error': 'Image failed to validate'}))
+			
 			image = Image.objects.create(original_image = File(img), upload_batch = UploadBatch.objects.get(id = upload_batch_id))
-						
+			
 			return HttpResponse(json.dumps({'success':'true', 'id':image.id, 'thumbnail_url':image.thumbnail.url, 'edit_url':reverse('edit', args=[image.id])}))
 		elif 'qqfile' in request.FILES:
 			Image.objects.create(original_image = request.FILES.get('qqfile'))
