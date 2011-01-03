@@ -10,21 +10,44 @@
 	<script type="text/javascript" src="js/jquery.cropzoom.js"></script>
 	
 	<script type="text/javascript">
-		$j(document).ready(function(){
-			var cropzoom = $j('#crop_container').cropzoom({
-				enableZoom:false,
+		ar_unlocked_options = {
+			enableZoom:false,
+			width:{{ image.original_image.width }},
+			height:{{ image.original_image.height }},
+			expose:{
+				slidersOrientation: 'horizontal',
+				rotationElement: '#rotate_container'
+			},
+			image:{
+				source:'{{ image.original_image.url }}',
 				width:{{ image.original_image.width }},
-				height:{{ image.original_image.height }},
-				expose:{
-					slidersOrientation: 'horizontal',
-					rotationElement: '#rotate_container'
-				},
-				image:{
-					source:'{{ image.original_image.url }}',
-					width:{{ image.original_image.width }},
-					height: {{ image.original_image.height }},
-					startZoom: 100,
-					snapToContainer: true
+				height: {{ image.original_image.height }},
+				startZoom: 100,
+				snapToContainer: true
+			}
+		};
+	
+		ar_locked_options = {}
+		$j.extend(true, ar_locked_options, ar_unlocked_options, {'selector': {
+			x: 0,
+			y: 0,
+			w: 500,
+			h: 300,
+			aspectRatio: true
+		}});
+		
+		$j(document).ready(function(){
+			var cropzoom = $j('#crop_container').cropzoom(ar_unlocked_options);
+			
+			$j('#aspect_ratio').change(function(){
+				$j('#crop_container').html('');
+				$j('#rotate_container').html('');
+				
+				if($j(this).attr('checked')){
+					cropzoom = $j('#crop_container').cropzoom(ar_locked_options);
+				}
+				else{
+					cropzoom = $j('#crop_container').cropzoom(ar_unlocked_options);
 				}
 			});
 			
@@ -42,6 +65,7 @@
 
 {% block content %}
 	<h3>Crop</h3>
+	<input type="checkbox" id="aspect_ratio" name="aspect_ratio" value="keep" /><label for="aspect_ratio">keep 5x3 ratio for optimum display</label>
 	<div id="crop_container"></div>
 	<div id="rotate_container"></div>
 	<button id="send_crop">Crop</button>
