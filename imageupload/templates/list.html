@@ -42,6 +42,11 @@
 				width:600,
 				autoOpen:false,
 				modal:true,
+				close: function() {
+						$j('#crop_container').html('');
+						$j('#rotate_container').html('');
+						$j('#aspect_ratio').removeAttr('checked');
+						},
 			});
 			
 			$j('#upload_save').click(function(){
@@ -125,7 +130,6 @@
 		}
 	
 		function editPhotos(id, edit_url, image_url, height, width) {
-			alert('edit_url = ' + edit_url + ' image_url = ' + image_url);
 			ar_unlocked_options = {
 				enableZoom:false,
 				width: width,
@@ -151,32 +155,30 @@
 				h: 300,
 				aspectRatio: true
 			}});
-			$j(document).ready(function(){
-				var cropzoom = $j('#crop_container').cropzoom(ar_unlocked_options);
+			var cropzoom = $j('#crop_container').cropzoom(ar_unlocked_options);
+			
+			$j('#aspect_ratio').change(function(){
+				$j('#crop_container').html('');
+				$j('#rotate_container').html('');
 				
-				$j('#aspect_ratio').change(function(){
-					$j('#crop_container').html('');
-					$j('#rotate_container').html('');
-					
-					if($j(this).attr('checked')){
-						cropzoom = $j('#crop_container').cropzoom(ar_locked_options);
-					}
-					else{
-						cropzoom = $j('#crop_container').cropzoom(ar_unlocked_options);
-					}
-				});
-				
-				$j('#send_crop').click(function(){
-					cropzoom.send(edit_url, 'post', {}, function(data){
-															if(data == '"ok"') {
-																alert($j('#file-upload-'+id + ' > img').attr('src'));
-																var newSrc = $j('#file-upload-'+id + ' > img').attr('src');
-																$j('#file-upload-'+id + ' > img').replaceWith('<img src="'+newSrc+'" />');
-																$j('#edit_dialog').dialog('close');
-															}	
-														});
-					return false;
-				});
+				if($j(this).attr('checked')){
+					cropzoom = $j('#crop_container').cropzoom(ar_locked_options);
+				}
+				else{
+					cropzoom = $j('#crop_container').cropzoom(ar_unlocked_options);
+				}
+			});
+			
+			$j('#send_crop').click(function(){
+				cropzoom.send(edit_url, 'post', {}, function(data){
+														if(data == '"ok"') {
+															// Change thumbnail in upload dialog box
+															var newSrc = $j('#file-upload-'+id + ' > img').attr('src');
+															$j('#file-upload-'+id + ' > img').replaceWith('<img src="'+newSrc+'" />');
+															$j('#edit_dialog').dialog('close');
+														}	
+													});
+				return false;
 			});
 			$j("#edit_dialog").dialog("open");
 			//window.location = edit_url; // Remove this after edit pop-up creation
