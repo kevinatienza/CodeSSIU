@@ -4,10 +4,12 @@
 
 {% block extra_css %}
 	<link rel="stylesheet" href="css/fileuploader.css" type="text/css"/>
+	<link rel="stylesheet" href="css/jquery.cropzoom.css" type="text/css"/>
 {% endblock %}
 
 {% block extra_js %}
 	<script type="text/javascript" src="js/fileuploader.js"></script>
+	<script type="text/javascript" src="js/jquery.cropzoom.js"></script>
 	
 	<script type="text/javascript">
 		var upload_batch_id = null,
@@ -19,7 +21,8 @@
 		    remainingBytes = new Array(),
 		    averageUploadTransferRate = 0.0,
 		    totalBytesLeft = 0.0,
-			uploadingSize = 0;
+			uploadingSize = 0,
+			save_clicked=false;
 
 		$j(document).ready(function(){
 			$j("#dialog").dialog({
@@ -27,15 +30,29 @@
 				width: 600, 
 				autoOpen: false, 
 				modal:true,
+				close: function() {
+						if(!save_clicked) {
+							$j.get(upload_cancel_url);
+							$j('#file-list').html('');
+						}},
+			});
+			
+			$j("#edit_dialog").dialog({
+				height: 500,
+				width:600,
+				autoOpen:false,
+				modal:true,
 			});
 			
 			$j('#upload_save').click(function(){
+				save_clicked = true;
 				$j.ajax({async: false, url: upload_save_url, data: $j('#upload_form').serializeArray(), type:'POST'});
 				closeUploadDialog();
 				location.reload();
 			});
 			
 			$j('#upload_cancel').click(function(){
+				save_clicked = false;
 				$j.get(upload_cancel_url);
 				closeUploadDialog();
 			});
@@ -75,7 +92,20 @@
 			if(uploadingSize > 0 && totalUploadTransferRate > 0) {
 				averageUploadTransferRate = totalUploadTransferRate / uploadingSize;
 				var time_left = Math.floor(totalBytesLeft / averageUploadTransferRate);
-				$j("#time-left").text("Uploading " + uploadingSize + " files - approx " + time_left + " seconds left.");
+				var hours_left = Math.floor(time_left / 3600);
+				var minutes_left = Math.floor((time_left % 3600) / 60);
+				var seconds_left = time_left % 60;
+				if(hours_left > 0) {
+					$j("#time-left").text("Uploading " + uploadingSize + " files - approx " + hours_left + " hours " 
+						+ minutes_left + " minutes " + seconds_left + " seconds left.");
+				}
+				else if(minutes_left > 0) {
+					$j("#time-left").text("Uploading " + uploadingSize + " files - approx " + minutes_left + " minutes " 
+						+ seconds_left + " seconds left.");
+				}
+				else {
+					$j("#time-left").text("Uploading " + uploadingSize + " files - approx " + time_left + " seconds left.");
+				}
 			}
 			else {
 				$j("#time-left").text("Uploading completed");
@@ -86,7 +116,7 @@
 		function onUploadComplete(id, filename, response){
 			uploadingSize--;
 			$j('#file-upload-'+id).html('<img src="'+response['thumbnail_url']+'" /><br/>'+
-										'<a href="' + response.edit_url + '">edit photo</a><br/>'+
+										'<a href="javascript:editPhotos(' + id + ', \'' + encodeURI(response.edit_url) + '\', \'' + encodeURI(response.image_url) + '\', ' + response.height + ', ' + response.width + ')">edit photo</a><br/>' +
 										'<input type="hidden" name="id-'+id+'" value="'+response['id']+'" />'+
 										'<textarea name="caption-'+id+'" placeholder="Caption"></textarea><br/>'+
 										'<input type="text" name="client-'+id+'" placeholder="Clients in this picture..."/><br/>'+
@@ -94,9 +124,66 @@
 			$j( "#progressBar" + id ).progressbar("value", 100);
 		}
 	
+		function editPhotos(id, edit_url, image_url, height, width) {
+			alert('edit_url = ' + edit_url + ' image_url = ' + image_url);
+			ar_unlocked_options = {
+				enableZoom:false,
+				width: width,
+				height: height,
+				expose:{
+					slidersOrientation: 'horizontal',
+					rotationElement: '#rotate_container'
+				},
+				image:{
+					source: image_url,
+					width: height,
+					height: width,
+					startZoom: 100,
+					snapToContainer: true
+				}
+			};
+		
+			ar_locked_options = {}
+			$j.extend(true, ar_locked_options, ar_unlocked_options, {'selector': {
+				x: 0,
+				y: 0,
+				w: 500,
+				h: 300,
+				aspectRatio: true
+			}});
+			$j(document).ready(function(){
+				var cropzoom = $j('#crop_container').cropzoom(ar_unlocked_options);
+				
+				$j('#aspect_ratio').change(function(){
+					$j('#crop_container').html('');
+					$j('#rotate_container').html('');
+					
+					if($j(this).attr('checked')){
+						cropzoom = $j('#crop_container').cropzoom(ar_locked_options);
+					}
+					else{
+						cropzoom = $j('#crop_container').cropzoom(ar_unlocked_options);
+					}
+				});
+				
+				$j('#send_crop').click(function(){
+					cropzoom.send(edit_url, 'post', {}, function(data){
+															if(data == '"ok"') {
+																alert($j('#file-upload-'+id + ' > img').attr('src'));
+																var newSrc = $j('#file-upload-'+id + ' > img').attr('src');
+																$j('#file-upload-'+id + ' > img').replaceWith('<img src="'+newSrc+'" />');
+																$j('#edit_dialog').dialog('close');
+															}	
+														});
+					return false;
+				});
+			});
+			$j("#edit_dialog").dialog("open");
+			//window.location = edit_url; // Remove this after edit pop-up creation
+		}
+	
 		function uploadPhotos() {
 			$j("#dialog").dialog("open");
-			
 			$j.post('{% url core.views.start_upload_batch %}', {}, setUploadBatch, 'json');
 		}
 		
@@ -134,6 +221,17 @@
 			<button id="upload_cancel">Cancel</button>
 		</div>
 	</div>
+	
+	<div id="edit_dialog" title="Edit Photos">
+		<div id="message-preview-box">
+			<h3>Crop</h3>
+			<input type="checkbox" id="aspect_ratio" name="aspect_ratio" value="keep" /><label for="aspect_ratio">keep 5x3 ratio for optimum display</label>
+			<div id="crop_container"></div>
+			<div id="rotate_container"></div>
+			<button id="send_crop">Crop</button>
+		</div>
+	</div>
+	
 	<h3>Photos</h3>
 	{% for image in images %}
 		<p>

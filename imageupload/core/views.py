@@ -43,7 +43,7 @@ def upload(request):
 			
 			image = Image.objects.create(original_image = File(img), upload_batch = UploadBatch.objects.get(id = upload_batch_id))
 			
-			return HttpResponse(json.dumps({'success':'true', 'id':image.id, 'thumbnail_url':image.thumbnail.url, 'edit_url':reverse('edit', args=[image.id])}))
+			return HttpResponse(json.dumps({'success':'true', 'id':image.id, 'thumbnail_url':image.thumbnail.url, 'edit_url':reverse('edit', args=[image.id]), 'image_url':image.original_image.url, 'height':image.original_image.height, 'width':image.original_image.width }))
 		elif 'qqfile' in request.FILES:
 			Image.objects.create(original_image = request.FILES.get('qqfile'))
 			return HttpResponse(json.dumps({'success':'true'}))
@@ -69,6 +69,7 @@ def edit(request, image_id):
 		pil_image.save(image.original_image.path)
 		
 		return HttpResponse(json.dumps('ok'))
+		#return HttpResponse(json.dumps({'success':'ok', 'thumbnail_url':image.thumbnail.url}))
 	
 	return render_to_response('edit.html', locals())
 
