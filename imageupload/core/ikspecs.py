@@ -18,6 +18,10 @@ class ResizeThumb(processors.Resize):
 	width = 150
 	height = 150
 	crop = True
+	
+class ResizeFilterDisplay(processors.Resize):
+	width = 200
+	height = 200
 
 class BAWer(processors.ImageProcessor):
 	@classmethod
@@ -38,13 +42,17 @@ class Sepiaer(processors.ImageProcessor):
 
 # Image Specs
 
+class OriginalFilter(ImageSpec):
+	access_as = 'original_filter'
+	processors = [ResizeFilterDisplay]
+
 class BlackAndWhite(ImageSpec):
 	access_as = 'black_and_white'
-	processors = [BAWer]
+	processors = [BAWer, ResizeFilterDisplay]
 	
 class Sepia(ImageSpec):
 	access_as = 'sepia'
-	processors = [Sepiaer]
+	processors = [Sepiaer, ResizeFilterDisplay]
 
 class Thumbnail(ImageSpec):
 	processors = [ResizeThumb]

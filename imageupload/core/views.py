@@ -43,12 +43,28 @@ def upload(request):
 			
 			image = Image.objects.create(original_image = File(img), upload_batch = UploadBatch.objects.get(id = upload_batch_id))
 			
-			return HttpResponse(json.dumps({'success':'true', 'id':image.id, 'thumbnail_url':image.thumbnail.url, 'edit_url':reverse('edit', args=[image.id]), 'image_url':image.original_image.url, 'height':image.original_image.height, 'width':image.original_image.width }))
+			return HttpResponse(json.dumps({'success':'true', 'id':image.id, 'thumbnail_url':image.thumbnail.url, 
+											'edit_url':reverse('edit', args=[image.id]), 'image_url':image.original_image.url, 
+											'get_filters_url':reverse('get_filters', args=[image.id]), 
+											'height':image.original_image.height, 'width':image.original_image.width }))
 		elif 'qqfile' in request.FILES:
 			Image.objects.create(original_image = request.FILES.get('qqfile'))
 			return HttpResponse(json.dumps({'success':'true'}))
 	
 	return render_to_response('upload.html')
+
+@login_required
+def get_filters(request, image_id):
+	image = Image.objects.get(id = image_id)
+	print 'image_id', image_id
+	data =	{
+				'original_url': image.original_filter.url,
+				'black_and_white_url': image.black_and_white.url,
+				'sepia_url': image.sepia.url,
+			}
+	print 'image.black_and_white.url', image.black_and_white.url
+	print 'image.sepia.url', image.sepia.url
+	return HttpResponse(json.dumps(data))
 
 @login_required
 def edit(request, image_id):
@@ -69,7 +85,6 @@ def edit(request, image_id):
 		pil_image.save(image.original_image.path)
 		
 		return HttpResponse(json.dumps('ok'))
-		#return HttpResponse(json.dumps({'success':'ok', 'thumbnail_url':image.thumbnail.url}))
 	
 	return render_to_response('edit.html', locals())
 
