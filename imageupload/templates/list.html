@@ -5,6 +5,14 @@
 {% block extra_css %}
 	<link rel="stylesheet" href="css/fileuploader.css" type="text/css"/>
 	<link rel="stylesheet" href="css/jquery.cropzoom.css" type="text/css"/>
+	<style type="text/css"> 
+		.ui-tabs-vertical { width: 55em; }
+		.ui-tabs-vertical .ui-tabs-nav { padding: .2em .1em .2em .2em; float: left; width: 12em; }
+		.ui-tabs-vertical .ui-tabs-nav li { clear: left; width: 100%; border-bottom-width: 1px !important; border-right-width: 0 !important; margin: 0 -1px .2em 0; }
+		.ui-tabs-vertical .ui-tabs-nav li a { display:block; }
+		.ui-tabs-vertical .ui-tabs-nav li.ui-tabs-selected { padding-bottom: 0; padding-right: .1em; border-right-width: 1px; border-right-width: 1px; }
+		.ui-tabs-vertical .ui-tabs-panel { padding: 1em; float: right; width: 40em;}
+	</style>
 {% endblock %}
 
 {% block extra_js %}
@@ -26,8 +34,8 @@
 
 		$j(document).ready(function(){
 			$j("#dialog").dialog({
-				height: 500, 
-				width: 600, 
+				height: 600, 
+				width: 800, 
 				autoOpen: false, 
 				modal:true,
 				close: function() {
@@ -38,10 +46,10 @@
 			});
 			
 			$j("#edit_dialog").dialog({
-				height: 500,
-				width:600,
+				height: 600,
+				width:800,
 				autoOpen:false,
-				modal:true,
+				modal:false,
 				close: function() {
 						$j('#crop_container').html('');
 						$j('#rotate_container').html('');
@@ -55,6 +63,16 @@
 				closeUploadDialog();
 				location.reload();
 			});
+			
+			$j("#edit_dialog").bind('dialogopen', function() { 
+				$j("#tabs").tabs().addClass('ui-tabs-vertical ui-helper-clearfix');
+				$j("#tabs li").removeClass('ui-corner-top').addClass('ui-corner-left'); 
+			}); 
+			
+			$j("#edit_dialog").bind('dialogclose', function() { 
+				$j("#tabs").tabs('destroy'); 
+				$j("#edit_dialog").tabs('destroy'); 
+			}); 
 			
 			$j('#upload_cancel').click(function(){
 				save_clicked = false;
@@ -181,7 +199,6 @@
 				return false;
 			});
 			$j("#edit_dialog").dialog("open");
-			//window.location = edit_url; // Remove this after edit pop-up creation
 		}
 	
 		function uploadPhotos() {
@@ -226,11 +243,29 @@
 	
 	<div id="edit_dialog" title="Edit Photos">
 		<div id="message-preview-box">
-			<h3>Crop</h3>
-			<input type="checkbox" id="aspect_ratio" name="aspect_ratio" value="keep" /><label for="aspect_ratio">keep 5x3 ratio for optimum display</label>
-			<div id="crop_container"></div>
-			<div id="rotate_container"></div>
-			<button id="send_crop">Crop</button>
+			<div id="tabs">
+				<ul> 
+					<li><a href="#tabs-1">Crop Image</a></li> 
+					<li><a href="#tabs-2">Thumbnail</a></li> 
+					<li><a href="#tabs-3">Magic Filters</a></li> 
+				</ul>
+				<div id="tabs-1"> 
+					<h3>Crop</h3>
+					<input type="checkbox" id="aspect_ratio" name="aspect_ratio" value="keep" /><label for="aspect_ratio">keep 5x3 ratio for optimum display</label>
+					<div id="crop_container"></div>
+					<div id="rotate_container"></div>
+				</div>
+				
+				<div id="tabs-2">
+					Thumbnail test
+				</div>
+				
+				<div id="tabs-3">
+					Magic Filter Test
+				</div>
+			</div>
+			
+			<button id="send_crop">Save Changes</button>
 		</div>
 	</div>
 	
