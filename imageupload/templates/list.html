@@ -138,13 +138,19 @@
 		
 		function onUploadComplete(id, filename, response){
 			uploadingSize--;
-			$j('#file-upload-'+id).html('<img src="'+response['thumbnail_url']+'" /><br/>'+
-										'<a href="javascript:editPhotos(' + id + ', \'' + encodeURI(response.edit_url) + '\', \'' + encodeURI(response.image_url) + '\', \'' + encodeURI(response.get_filters_url) + '\', ' + response.height + ', ' + response.width + ')">edit photo</a><br/>' +
-										'<input type="hidden" name="id-'+id+'" value="'+response['id']+'" />'+
-										'<textarea name="caption-'+id+'" placeholder="Caption"></textarea><br/>'+
-										'<input type="text" name="client-'+id+'" placeholder="Clients in this picture..."/><br/>'+
-										'<input type="checkbox" name="display-'+id+'" value="displayed" /> Display this image publicly on my profile');
-			$j( "#progressBar" + id ).progressbar("value", 100);
+			
+			if(response['success']){
+				$j('#file-upload-'+id).html('<img src="'+response['thumbnail_url']+'" /><br/>'+
+											'<a href="javascript:editPhotos(' + id + ', \'' + encodeURI(response.edit_url) + '\', \'' + encodeURI(response.image_url) + '\', \'' + encodeURI(response.get_filters_url) + '\', ' + response.height + ', ' + response.width + ')">edit photo</a><br/>' +
+											'<input type="hidden" name="id-'+id+'" value="'+response['id']+'" />'+
+											'<textarea name="caption-'+id+'" placeholder="Caption"></textarea><br/>'+
+											'<input type="text" name="client-'+id+'" placeholder="Clients in this picture..."/><br/>'+
+											'<input type="checkbox" name="display-'+id+'" value="displayed" /> Display this image publicly on my profile');
+				$j( "#progressBar" + id ).progressbar("value", 100);
+			}
+			else{
+				$j('#file-upload-'+id).html(filename+' upload failed: '+response['error']);
+			}
 		}
 		
 		function getFiltersCallback(data) {
@@ -228,6 +234,7 @@
 				action: '{% url core.views.upload %}',
 				params: {'upload_batch_id': data['upload_batch_id']},
 				allowedExtensions: ['jpg', 'jpeg', 'png', 'gif', 'bmp'],
+				sizeLimit: 5242880, 
 				onSubmit: onUpload,
 				onProgress: onProgress,
 				onComplete: onUploadComplete

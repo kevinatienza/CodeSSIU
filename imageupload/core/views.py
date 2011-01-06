@@ -33,13 +33,23 @@ def upload(request):
 						foo = stream.read( 1024 )
 					destination.flush()
 			
-			img = open(abs_temp_filename, 'rb+')
+			file_size = os.path.getsize(abs_temp_filename)
+			if file_size > 5242880L:
+				return HttpResponse(json.dumps({'error': 'File size must not exceed 5MB'}))
 			
 			try:
-				pil_image = PILImage.open(img)
+				pil_image = PILImage.open(abs_temp_filename)
 				pil_image.verify()
 			except IOError:
 				return HttpResponse(json.dumps({'error': 'Image failed to validate'}))
+				
+			pil_image = PILImage.open(abs_temp_filename)
+			pil_image.thumbnail((1200, 1200,), PILImage.ANTIALIAS)
+			
+			abs_resized_filename = os.path.join('/tmp', '%s-%s' % ('resized', temp_filename))
+			pil_image.save(abs_resized_filename)
+			
+			img = open(abs_resized_filename, 'rb+')
 			
 			image = Image.objects.create(original_image = File(img), upload_batch = UploadBatch.objects.get(id = upload_batch_id))
 			
