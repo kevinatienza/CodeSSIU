@@ -66,7 +66,6 @@ def upload(request):
 @login_required
 def get_filters(request, image_id):
 	image = Image.objects.get(id = image_id)
-	print 'image_id', image_id
 	data =	{
 				'original_url': image.original_filter.url,
 				'black_and_white_url': image.black_and_white.url,
@@ -75,6 +74,26 @@ def get_filters(request, image_id):
 	print 'image.black_and_white.url', image.black_and_white.url
 	print 'image.sepia.url', image.sepia.url
 	return HttpResponse(json.dumps(data))
+	
+@login_required
+def remove_filters(request):
+	"""
+	Removes all filters for a certain image.  This view is used when
+	the edit edit dialog box is closed.
+	"""
+	image_id = request.POST.get('image_id')
+	image = Image.objects.get(id = image_id)
+	# Get absolute path of filter images
+	original_url = settings.MEDIA_ROOT + '/' + image.original_filter.url
+	black_and_white_url = settings.MEDIA_ROOT + '/' + image.black_and_white.url
+	sepia_url = settings.MEDIA_ROOT + '/' + image.sepia.url
+	
+	# Delete filter images
+	os.remove(original_url)
+	os.remove(black_and_white_url)
+	os.remove(sepia_url)
+	
+	return HttpResponse('ok')
 
 @login_required
 def edit(request, image_id):
