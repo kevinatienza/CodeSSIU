@@ -52,6 +52,8 @@ def upload(request):
 			img = open(abs_resized_filename, 'rb+')
 			
 			image = Image.objects.create(original_image = File(img), upload_batch = UploadBatch.objects.get(id = upload_batch_id))
+			# Create original filter image
+			image.original_filter.url
 			
 			return HttpResponse(json.dumps({'success':'true', 'id':image.id, 'thumbnail_url':image.thumbnail.url, 
 											'edit_url':reverse('edit', args=[image.id]), 'image_url':image.original_image.url, 
@@ -73,8 +75,6 @@ def get_filters(request, image_id):
 				'height':image.original_image.height, 
 				'width':image.original_image.width
 			}
-	print 'image.black_and_white.url', image.black_and_white.url
-	print 'image.sepia.url', image.sepia.url
 	return HttpResponse(json.dumps(data))
 	
 @login_required
@@ -86,12 +86,10 @@ def remove_filters(request):
 	image_id = request.POST.get('image_id')
 	image = Image.objects.get(id = image_id)
 	# Get absolute path of filter images
-	original_url = settings.MEDIA_ROOT + '/' + image.original_filter.url
 	black_and_white_url = settings.MEDIA_ROOT + '/' + image.black_and_white.url
 	sepia_url = settings.MEDIA_ROOT + '/' + image.sepia.url
 	
 	# Delete filter images
-	os.remove(original_url)
 	os.remove(black_and_white_url)
 	os.remove(sepia_url)
 	
@@ -134,6 +132,8 @@ def edit(request, image_id):
 		rotate_cw = int(request.POST.get('imageRotate'))
 		rotate = 360 - rotate_cw
 		
+		original_url = settings.MEDIA_ROOT + '/' + image.original_filter.url
+		
 		crop_x1 = int(request.POST.get('selectorX'))
 		crop_y1 = int(request.POST.get('selectorY'))
 		crop_x2 = crop_x1 + int(request.POST.get('selectorW'))
@@ -143,6 +143,12 @@ def edit(request, image_id):
 		pil_image = pil_image.rotate(rotate)
 		pil_image = pil_image.crop((crop_x1, crop_y1, crop_x2, crop_y2,))
 		pil_image.save(image.original_image.path)
+		
+		# Change original_filter image
+		original_filter = PILImage.open(original_url)
+		original_filter = original_filter.rotate(rotate)
+		original_filter = original_filter.crop((crop_x1, crop_y1, crop_x2, crop_y2,))
+		original_filter.save(original_url)
 		
 		return HttpResponse(json.dumps('ok'))
 	
