@@ -272,6 +272,11 @@
 								'image_id': global_image_id,
 								'image_filter': current_filter,
 							});
+						$j.post('{% url change_thumbnail %}',
+							{
+								'image_id': global_image_id,
+								'old_src': $j('#file-upload-'+id + ' > img').attr("src"),
+							}, changeThumbnailCallback);
 						$j('#edit_dialog').dialog('close');
 					}
 				}
@@ -288,8 +293,6 @@
 		}
 		
 		function changeThumbnailCallback(data) {
-			alert(data);
-			alert(global_list_id);
 			$j('#file-upload-'+ global_list_id + ' > img').attr("src", data);
 		}
 		
