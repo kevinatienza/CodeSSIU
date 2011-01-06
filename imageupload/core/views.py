@@ -70,6 +70,8 @@ def get_filters(request, image_id):
 				'original_url': image.original_filter.url,
 				'black_and_white_url': image.black_and_white.url,
 				'sepia_url': image.sepia.url,
+				'height':image.original_image.height, 
+				'width':image.original_image.width
 			}
 	print 'image.black_and_white.url', image.black_and_white.url
 	print 'image.sepia.url', image.sepia.url

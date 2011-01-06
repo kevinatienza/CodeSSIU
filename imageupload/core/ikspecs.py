@@ -44,15 +44,14 @@ class Sepiaer(processors.ImageProcessor):
 
 class OriginalFilter(ImageSpec):
 	access_as = 'original_filter'
-	processors = [ResizeFilterDisplay]
 
 class BlackAndWhite(ImageSpec):
 	access_as = 'black_and_white'
-	processors = [BAWer, ResizeFilterDisplay]
+	processors = [BAWer]
 	
 class Sepia(ImageSpec):
 	access_as = 'sepia'
-	processors = [Sepiaer, ResizeFilterDisplay]
+	processors = [Sepiaer]
 
 class Thumbnail(ImageSpec):
 	processors = [ResizeThumb]

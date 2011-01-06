@@ -116,8 +116,6 @@
 			});
 		});
 		
-		
-		
 		function closeUploadDialog(){
 			$j('#dialog').dialog('close');
 			$j('#file-list').html('');
@@ -194,6 +192,16 @@
 			$j("#original").attr("src", encodeURI(data.original_url));
 			$j("#black_and_white").attr("src", encodeURI(data.black_and_white_url));
 			$j("#sepia").attr("src", encodeURI(data.sepia_url));
+			
+			// Change size attribute
+			var height = data.height;
+			var width = data.width;
+			if (height > width) {
+				$j("img.image_filter").height(200);
+			}
+			else {
+				$j("img.image_filter").width(200);
+			}
 		}
 	
 		function editPhotos(image_id, id, edit_url, image_url, get_filters_url, height, width) {
@@ -357,13 +365,13 @@
 						<tr>
 							<td>
 								<a class="image_filter" href="javascript:setCurrentFilter('original')">
-									<img class="image_filter" id="original" />
+									<img class="image_filter" id="original"/>
 								</a>
 								<h4>Original</h4>
 							</td>
 							<td>
 								<a class="image_filter" href="javascript:setCurrentFilter('black_and_white')">
-									<img class="image_filter" id="black_and_white" />
+									<img class="image_filter" id="black_and_white"/>
 								</a>
 								<h4>Black and White</h4>
 							</td>
@@ -371,7 +379,7 @@
 						<tr>
 							<td>
 								<a href="javascript:setCurrentFilter('sepia')">
-									<img class="image_filter" id="sepia" />
+									<img class="image_filter" id="sepia"/>
 								</a>
 								<h4>Sepia</h4>
 							</td>
