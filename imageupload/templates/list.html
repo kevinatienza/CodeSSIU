@@ -45,6 +45,7 @@
 			uploadingSize = 0,
 			save_clicked=false,
 			global_image_id,
+			global_list_id,
 			edit_state='',
 			current_filter='';
 
@@ -206,6 +207,7 @@
 	
 		function editPhotos(image_id, id, edit_url, image_url, get_filters_url, height, width) {
 			global_image_id = image_id;
+			global_list_id = id;
 			ar_unlocked_options = {
 				enableZoom:false,
 				width: width,
@@ -248,9 +250,11 @@
 				if(edit_state == 'Crop Image') {
 					cropzoom.send(edit_url, 'post', {}, function(data){
 														if(data == '"ok"') {
-															// Change thumbnail in upload dialog box - not yet ok
-															var newSrc = $j('#file-upload-'+id + ' > img').attr('src');
-															$j('#file-upload-'+id + ' > img').replaceWith('<img src="'+newSrc+'" />');
+															$j.post('{% url change_thumbnail %}',
+															{
+																'image_id': global_image_id,
+																'old_src': $j('#file-upload-'+id + ' > img').attr("src"),
+															}, changeThumbnailCallback);
 															$j('#edit_dialog').dialog('close');
 														}	
 													});
@@ -281,6 +285,12 @@
 				getFiltersCallback, "json");
 			
 			$j("#edit_dialog").dialog("open");
+		}
+		
+		function changeThumbnailCallback(data) {
+			alert(data);
+			alert(global_list_id);
+			$j('#file-upload-'+ global_list_id + ' > img').attr("src", data);
 		}
 		
 		// Used by image filter anchors

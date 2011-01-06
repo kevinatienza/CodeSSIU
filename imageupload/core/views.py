@@ -96,6 +96,19 @@ def remove_filters(request):
 	os.remove(sepia_url)
 	
 	return HttpResponse('ok')
+	
+@login_required
+def change_thumbnail(request):
+	"""
+	Must receive old_src and image_id in request
+	"""
+	old_src = settings.MEDIA_ROOT + '/' + request.POST.get('old_src')
+	image_id = request.POST.get('image_id')
+	
+	image = Image.objects.get(id=image_id)
+	os.remove(old_src)
+	
+	return HttpResponse(image.thumbnail.url)
 
 @login_required
 def apply_filter(request):
@@ -108,8 +121,6 @@ def apply_filter(request):
 	image = Image.objects.get(id=image_id)
 	
 	filtered_image_url = settings.MEDIA_ROOT + '/' + eval("image." + image_filter + ".url")
-	print 'filtered_image_url = ', filtered_image_url
-	print 'original_image_url = ', image.original_image.path
 	pil_image = PILImage.open(filtered_image_url)
 	pil_image.save(image.original_image.path)
 	
