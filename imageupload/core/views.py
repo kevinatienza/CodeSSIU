@@ -86,6 +86,24 @@ def remove_filters(request):
 	return HttpResponse('ok')
 
 @login_required
+def apply_filter(request):
+	"""
+	Must receive image_id and image_filter in request.
+	"""
+	
+	image_id = request.POST.get('image_id')
+	image_filter = request.POST.get('image_filter')
+	image = Image.objects.get(id=image_id)
+	
+	filtered_image_url = settings.MEDIA_ROOT + '/' + eval("image." + image_filter + ".url")
+	print 'filtered_image_url = ', filtered_image_url
+	print 'original_image_url = ', image.original_image.path
+	pil_image = PILImage.open(filtered_image_url)
+	pil_image.save(image.original_image.path)
+	
+	return HttpResponse('ok')
+
+@login_required
 def edit(request, image_id):
 	image = Image.objects.get(id = image_id)
 	
