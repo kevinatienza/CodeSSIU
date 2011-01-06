@@ -31,7 +31,8 @@
 		    totalBytesLeft = 0.0,
 			uploadingSize = 0,
 			save_clicked=false,
-			global_image_id;
+			global_image_id,
+			edit_state='';
 
 		$j(document).ready(function(){
 			$j("#dialog").dialog({
@@ -69,7 +70,12 @@
 			});
 			
 			$j("#edit_dialog").bind('dialogopen', function() { 
-				$j("#tabs").tabs().addClass('ui-tabs-vertical ui-helper-clearfix');
+				$j("#tabs").tabs({
+					show: function(event, ui) { 
+						var selected = $j("#tabs > ul > li.ui-tabs-selected > a").text();
+						edit_state = selected;
+					}
+				}).addClass('ui-tabs-vertical ui-helper-clearfix');
 				$j("#tabs li").removeClass('ui-corner-top').addClass('ui-corner-left'); 
 			}); 
 			
@@ -84,6 +90,8 @@
 				closeUploadDialog();
 			});
 		});
+		
+		
 		
 		function closeUploadDialog(){
 			$j('#dialog').dialog('close');
@@ -197,9 +205,9 @@
 					cropzoom = $j('#crop_container').cropzoom(ar_unlocked_options);
 				}
 			});
-			
-			$j('#send_crop').click(function(){
-				cropzoom.send(edit_url, 'post', {}, function(data){
+			$j('#save_changes').click(function(){
+				if(edit_state == 'Crop Image') {
+					cropzoom.send(edit_url, 'post', {}, function(data){
 														if(data == '"ok"') {
 															// Change thumbnail in upload dialog box - not yet ok
 															var newSrc = $j('#file-upload-'+id + ' > img').attr('src');
@@ -207,6 +215,14 @@
 															$j('#edit_dialog').dialog('close');
 														}	
 													});
+				}
+				else if(edit_state == 'Thumbnail') {
+					alert('Thumbnail');
+				}
+				else if(edit_state == 'Magic Filters') {
+					alert('Magic Filters');
+				}
+				
 				return false;
 			});
 			
@@ -300,7 +316,7 @@
 				</div>
 			</div>
 			
-			<button id="send_crop">Save Changes</button>
+			<button id="save_changes">Save Changes</button>
 		</div>
 	</div>
 	
