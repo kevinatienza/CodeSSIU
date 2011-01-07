@@ -219,8 +219,8 @@
 				},
 				image:{
 					source: image_url + '?timestamp=' + (new Date().getTime()),
-					width: height,
-					height: width,
+					width: width,
+					height: height,
 					startZoom: 100,
 					snapToContainer: true
 				}
@@ -251,9 +251,18 @@
 			
 			$j('#save_changes').unbind('click');
 			$j('#save_changes').click(function(){
-				var old_src = $j('#file-upload-'+id + ' > img').attr("src");
+				var old_src = '';
+				if(global_list_id >= 0) {
+					old_src = $j('#file-upload-'+id + ' > img').attr("src");
+				}
+				else {
+					old_src = $j('#image-'+ global_image_id ).attr("src");
+				}
+				alert("old_src = " + old_src);
 				var indexOfTimestamp = old_src.indexOf('?timestamp', 0);
-				old_src = old_src.substr(0, indexOfTimestamp);
+				if (indexOfTimestamp >= 0) {
+					old_src = old_src.substr(0, indexOfTimestamp);
+				}
 				if(edit_state == 'Crop Image') {
 					cropzoom.send(edit_url, 'post', {}, function(data){
 														if(data == '"ok"') {
@@ -261,7 +270,7 @@
 															{
 																'image_id': global_image_id,
 																'old_src': old_src,
-															}, changeThumbnailCallback);
+															}, changeThumbnailCallback, "json");
 															$j('#edit_dialog').dialog('close');
 														}	
 													});
@@ -283,7 +292,7 @@
 							{
 								'image_id': global_image_id,
 								'old_src': old_src,
-							}, changeThumbnailCallback);
+							}, changeThumbnailCallback, "json");
 						$j('#edit_dialog').dialog('close');
 					}
 				}
@@ -301,7 +310,26 @@
 		}
 		
 		function changeThumbnailCallback(data) {
-			$j('#file-upload-'+ global_list_id + ' > img').attr('src', data + '?timestamp=' + new Date().getTime());
+			if(global_list_id >= 0) {
+				$j('#file-upload-'+ global_list_id + ' > img').attr('src', data.thumbnail_url + '?timestamp=' + new Date().getTime());
+				var href = $j('#file-upload-'+ global_list_id + ' > a').attr("href");
+				var last_comma = href.lastIndexOf(',');
+				href = href.substr(0, last_comma);
+				last_comma = href.lastIndexOf(',');
+				href = href.substr(0, last_comma);
+				href = href + ", " + data.height + ", " + data.width + ")";
+				$j('#file-upload-'+ global_list_id + ' > a').attr("href", href);
+			}
+			else {
+				$j('#image-'+ global_image_id ).attr('src', data.thumbnail_url + '?timestamp=' + new Date().getTime());
+				var href = $j('#a-image-'+ global_image_id).attr("href");
+				var last_comma = href.lastIndexOf(',');
+				href = href.substr(0, last_comma);
+				last_comma = href.lastIndexOf(',');
+				href = href.substr(0, last_comma);
+				href = href + ", " + data.height + ", " + data.width + ")";
+				$j('#a-image-'+ global_image_id).attr("href", href);
+			}
 		}
 		
 		// Used by image filter anchors
@@ -416,8 +444,8 @@
 	<h3>Photos</h3>
 	{% for image in images %}
 		<p>
-			<img src="{{ image.thumbnail.url }}" /><br/>
-			<a href="{% url core.views.edit image.id %}">edit</a><br/>
+			<img id="image-{{ image.id }}" src="{{ image.thumbnail.url }}" /><br/>
+			<a id="a-image-{{ image.id }}"  href="javascript:editPhotos({{ image.id }}, -1, '{% url edit image.id %}', '{{ image.original_image.url }}', '{% url get_filters image.id %}', {{ image.original_image.height }}, {{ image.original_image.width }})">edit photo</a><br/>
 			Caption: {{ image.caption }}<br/>
 			Client: {{ image.client }}<br/>
 			Display: {{ image.display }}

@@ -104,9 +104,16 @@ def change_thumbnail(request):
 	image_id = request.POST.get('image_id')
 	
 	image = Image.objects.get(id=image_id)
+	print 'old_src', old_src
 	os.remove(old_src)
 	
-	return HttpResponse(image.thumbnail.url)
+	data =	{
+				'thumbnail_url': image.thumbnail.url,
+				'height': image.original_image.height,
+				'width': image.original_image.width,
+			}
+	
+	return HttpResponse(json.dumps(data))
 
 @login_required
 def apply_filter(request):
