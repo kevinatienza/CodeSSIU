@@ -143,7 +143,8 @@ def upload(request):
 			
 			return HttpResponse(json.dumps({'success':'true', 'id':image.id, 'thumbnail_url':image.thumbnail.url, 'toSmall': toSmall,
 											'edit_url':reverse('edit', args=[image.id]), 'image_url':image.original_image.url, 
-											'get_filters_url':reverse('get_filters', args=[image.id]), 
+											'get_filters_url':reverse('get_filters', args=[image.id]),
+											'edit_thumbnail_url':reverse('edit_thumbnail', args=[image.id]),  
 											'height':image.original_image.height, 'width':image.original_image.width }))
 		elif 'qqfile' in request.FILES:
 			Image.objects.create(original_image = request.FILES.get('qqfile'))
@@ -189,9 +190,11 @@ def change_thumbnail(request):
 	"""
 	old_src = settings.MEDIA_ROOT + '/' + request.POST.get('old_src')
 	image_id = request.POST.get('image_id')
-	
+	replace_thumbnail = request.POST.get('replace_thumbnail')
+	print 'replace_thumbnail = ', replace_thumbnail
 	image = Image.objects.get(id=image_id)
-	os.remove(old_src)
+	if replace_thumbnail == 'True':
+		os.remove(old_src)
 	
 	data =	{
 				'thumbnail_url': image.thumbnail.url,
@@ -246,6 +249,26 @@ def edit(request, image_id):
 		return HttpResponse(json.dumps('ok'))
 	
 	return render_to_response('edit.html', locals())
+	
+@login_required
+def edit_thumbnail(request, image_id):
+	image = Image.objects.get(id = image_id)
+	
+	if request.method == 'POST':
+		thumbnail_url = settings.MEDIA_ROOT + '/' + image.thumbnail.url
+		
+		crop_x1 = int(request.POST.get('selectorX'))
+		crop_y1 = int(request.POST.get('selectorY'))
+		crop_x2 = crop_x1 + int(request.POST.get('selectorW'))
+		crop_y2 = crop_y1 + int(request.POST.get('selectorH'))
+		
+		pil_image = PILImage.open(image.original_image.path)
+		pil_image = pil_image.crop((crop_x1, crop_y1, crop_x2, crop_y2,))
+		pil_image.save(thumbnail_url)
+		
+		return HttpResponse(json.dumps('ok'))
+	
+	return render_to_response('edit.html', locals())
 
 @login_required
 def start_upload_batch(request):
@@ -276,13 +299,22 @@ def save_upload(request, upload_batch_id):
 		temp_original_url = original_url.replace('original_filter', 'temp_filter')
 		pil_image.save(temp_original_url)
 		
+		# Get thumbnail url
+		thumbnail_url = settings.MEDIA_ROOT + '/' + image.thumbnail.url
+		thumbnail_image = PILImage.open(thumbnail_url)
+		temp_thumbnail_url = thumbnail_url.replace('thumbnail', 'temp_thumbnail')
+		thumbnail_image.save(temp_thumbnail_url)
+		
 		image.caption = request.POST.get('caption-%d' % i)
 		image.client = request.POST.get('client-%d' % i)
 		image.display = request.POST.get('display-%d' % i, False) is not False
 		image.save()
 		original_url = settings.MEDIA_ROOT + '/' + image.original_filter.url
+		thumbnail_url = settings.MEDIA_ROOT + '/' + image.thumbnail.url
 		pil_image.save(original_url)
+		thumbnail_image.save(thumbnail_url)
 		os.remove(temp_original_url)
+		os.remove(temp_thumbnail_url)
 		
 	upload_batch.saved = True
 	upload_batch.save()

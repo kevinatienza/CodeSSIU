@@ -11,6 +11,15 @@ def make_linear_ramp(white):
 	for i in range(255):
 		ramp.extend((r*i/255, g*i/255, b*i/255))
 	return ramp
+	
+def do_sepia(img):
+	sepia = make_linear_ramp((255, 240, 192))
+	if img.mode != "L":
+		img = img.convert("L")
+	img = ImageOps.autocontrast(img)
+	img.putpalette(sepia)
+	img = img.convert("RGB")
+	return img
 
 # Processors
 
@@ -32,12 +41,7 @@ class BAWer(processors.ImageProcessor):
 class Sepiaer(processors.ImageProcessor):
 	@classmethod
 	def process(cls, img, fmt, obj):
-		sepia = make_linear_ramp((255, 240, 192))
-		if img.mode != "L":
-			img = img.convert("L")
-		img = ImageOps.autocontrast(img)
-		img.putpalette(sepia)
-		img = img.convert("RGB")
+		img = do_sepia(img)
 		return img, fmt
 
 # Image Specs
