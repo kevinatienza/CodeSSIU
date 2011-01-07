@@ -355,7 +355,7 @@
 				else {
 					old_src = $j('#image-'+ global_image_id ).attr("src");
 				}
-				alert("old_src = " + old_src);
+				
 				var indexOfTimestamp = old_src.indexOf('?timestamp', 0);
 				if (indexOfTimestamp >= 0) {
 					old_src = old_src.substr(0, indexOfTimestamp);

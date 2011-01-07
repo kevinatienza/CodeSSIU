@@ -154,6 +154,7 @@ def upload(request):
 @login_required
 def get_filters(request, image_id):
 	image = Image.objects.get(id = image_id)
+	
 	data =	{
 				'original_url': image.original_filter.url,
 				'black_and_white_url': image.black_and_white.url,
@@ -190,7 +191,6 @@ def change_thumbnail(request):
 	image_id = request.POST.get('image_id')
 	
 	image = Image.objects.get(id=image_id)
-	print 'old_src', old_src
 	os.remove(old_src)
 	
 	data =	{
@@ -269,10 +269,20 @@ def save_upload(request, upload_batch_id):
 	for i in range(upload_batch.image_set.count()):
 		image_id = request.POST.get('id-%d' % i)
 		image = Image.objects.get(id = image_id)
+		
+		# Get original_filter_url
+		original_url = settings.MEDIA_ROOT + '/' + image.original_filter.url
+		pil_image = PILImage.open(original_url)
+		temp_original_url = original_url.replace('original_filter', 'temp_filter')
+		pil_image.save(temp_original_url)
+		
 		image.caption = request.POST.get('caption-%d' % i)
 		image.client = request.POST.get('client-%d' % i)
 		image.display = request.POST.get('display-%d' % i, False) is not False
 		image.save()
+		original_url = settings.MEDIA_ROOT + '/' + image.original_filter.url
+		pil_image.save(original_url)
+		os.remove(temp_original_url)
 		
 	upload_batch.saved = True
 	upload_batch.save()
