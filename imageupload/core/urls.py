@@ -11,4 +11,5 @@ urlpatterns = patterns('imageupload.core.views',
 	(r'^start_upload_batch$', 'start_upload_batch'),
 	url(r'^save_upload/(\d+)$', 'save_upload', name = 'save_upload'),
 	url(r'^cancel_upload/(\d+)$', 'cancel_upload', name = 'cancel_upload'),
+	url(r'^get_clients/$', 'get_clients', name = 'get_clients'),
 )
