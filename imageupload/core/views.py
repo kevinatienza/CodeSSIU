@@ -11,6 +11,86 @@ import json
 import time
 import os
 
+def get_clients(request):
+
+	if request.method == 'GET':
+		if 'term' in request.GET:
+			term = request.GET.get('term')
+
+			limit = 5	
+			client_list = [
+				{'id':'1','name':'aardvark','value':'aardvark'},
+				{'id':'2','name':'anteater','value':'anteater'},
+				{'id':'3','name':'argali','value':'argali'},
+				{'id':'4','name':'badger','value':'badger'},
+				{'id':'5','name':'beaver','value':'beaver'},
+				{'id':'6','name':'budgerigar','value':'budgerigar'},
+				{'id':'7','name':'burro','value':'burro'},
+				{'id':'8','name':'cat','value':'cat'},
+				{'id':'9','name':'chimpanzee','value':'chimpanzee'},
+				{'id':'10','name':'coati','value':'coati'},
+				{'id':'11','name':'cow','value':'cow'},
+				{'id':'12','name':'deer','value':'deer'},
+				{'id':'13','name':'donkey','value':'donkey'},
+				{'id':'14','name':'dugong','value':'dugong'},
+				{'id':'15','name':'ermine','value':'ermine'},
+				{'id':'16','name':'finch','value':'finch'},
+				{'id':'17','name':'gazelle','value':'gazelle'},
+				{'id':'18','name':'grizzly bear','value':'grizzly bear'},
+				{'id':'19','name':'hamster','value':'hamster'},
+				{'id':'20','name':'hippopotamus','value':'hippopotamus'},
+				{'id':'21','name':'ibex','value':'ibex'},
+				{'id':'22','name':'jaguar','value':'jaguar'},
+				{'id':'23','name':'kinkajou','value':'kinkajou'},
+				{'id':'24','name':'lamb','value':'lamb'},
+				{'id':'25','name':'lizard','value':'lizard'},
+				{'id':'26','name':'mandrill','value':'mandrill'},
+				{'id':'27','name':'mink','value':'mink'},
+				{'id':'28','name':'moose','value':'moose'},
+				{'id':'29','name':'musk deer','value':'musk deer'},
+				{'id':'30','name':'mynah bird','value':'mynah bird'},
+				{'id':'31','name':'opossum','value':'opossum'},
+				{'id':'32','name':'parrot','value':'parrot'},
+				{'id':'33','name':'polar bear','value':'polar bear'},
+				{'id':'34','name':'prairie dog','value':'prairie dog'},
+				{'id':'35','name':'quagga','value':'quagga'},
+				{'id':'36','name':'iguana','value':'iguana'},
+				{'id':'37','name':'jerboa','value':'jerboa'},
+				{'id':'38','name':'mountain goat','value':'mountain goat'},
+				{'id':'39','name':'instart','value':'instart'},
+				{'id':'40','name':'start','value':'start'},
+				{'id':'41','name':'astar','value':'astar'},
+				{'id':'42','name':'starr','value':'starr'},
+				{'id':'43','name':'insttar','value':'insttar'},
+				{'id':'44','name':'instary','value':'instary'},
+				{'id':'45','name':'stara','value':'stara'},
+				{'id':'46','name':'starus','value':'starus'}
+			]
+
+			
+
+			primary_results = []
+			primary_counter = 0
+			secondary_results = []
+			output_results = []	
+
+			for client in client_list:
+				if client['name'].startswith(term):
+					primary_results.append(client)
+					primary_counter += 1
+					if primary_counter >= limit:
+						break
+				elif term in client['name']:
+					secondary_results.append(client)
+
+			output_results = primary_results
+
+			if primary_counter < limit and len(secondary_results)>=limit-primary_counter:
+				output_results = primary_results + secondary_results[0:limit-primary_counter]		
+			
+			return HttpResponse(json.dumps(output_results))
+	return HttpResponse("")
+
 @login_required
 def list(request):
 	images = Image.objects.filter(upload_batch__user = request.user, upload_batch__saved = True).order_by('-upload_batch__creation_time', 'id')
@@ -54,8 +134,14 @@ def upload(request):
 			image = Image.objects.create(original_image = File(img), upload_batch = UploadBatch.objects.get(id = upload_batch_id))
 			# Create original filter image
 			image.original_filter.url
+
+			minHeight = 250
+			minWidth = 250
+			toSmall = 'false'
+			if minHeight > image.original_image.height or minWidth > image.original_image.width:
+				toSmall = 'true'
 			
-			return HttpResponse(json.dumps({'success':'true', 'id':image.id, 'thumbnail_url':image.thumbnail.url, 
+			return HttpResponse(json.dumps({'success':'true', 'id':image.id, 'thumbnail_url':image.thumbnail.url, 'toSmall': toSmall,
 											'edit_url':reverse('edit', args=[image.id]), 'image_url':image.original_image.url, 
 											'get_filters_url':reverse('get_filters', args=[image.id]), 
 											'height':image.original_image.height, 'width':image.original_image.width }))
