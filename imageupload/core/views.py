@@ -4,6 +4,7 @@ from django.shortcuts import render_to_response
 from django.http import HttpResponse
 from django.core.files import File
 from models import Image, UploadBatch
+from ikspecs import do_black_and_white, do_sepia
 from io import BufferedReader, BufferedWriter, BytesIO, FileIO
 import Image as PILImage
 import settings
@@ -218,6 +219,17 @@ def apply_filter(request):
 	pil_image = PILImage.open(filtered_image_url)
 	pil_image.save(image.original_image.path)
 	
+	# Apply filter to thumbnail
+	thumbnail_url = settings.MEDIA_ROOT + '/' + image.thumbnail.url
+	if image_filter == 'original_filter':
+		original_filter_thumbnail_url = settings.MEDIA_ROOT + '/' + image.original_filter_thumbnail.url
+		thumbnail_image = PILImage.open(original_filter_thumbnail_url)
+		thumbnail_image.save(thumbnail_url)
+	else:
+		thumbnail_image = PILImage.open(thumbnail_url)
+		thumbnail_image = eval('do_' + image_filter + '(thumbnail_image)')
+		thumbnail_image.save(thumbnail_url)
+	
 	return HttpResponse('ok')
 
 @login_required
@@ -256,14 +268,19 @@ def edit_thumbnail(request, image_id):
 	
 	if request.method == 'POST':
 		thumbnail_url = settings.MEDIA_ROOT + '/' + image.thumbnail.url
+		original_filter_url = settings.MEDIA_ROOT + '/' + image.original_filter.url
+		original_filter_thumbnail_url = settings.MEDIA_ROOT + '/' + image.original_filter_thumbnail.url
 		
 		crop_x1 = int(request.POST.get('selectorX'))
 		crop_y1 = int(request.POST.get('selectorY'))
 		crop_x2 = crop_x1 + int(request.POST.get('selectorW'))
 		crop_y2 = crop_y1 + int(request.POST.get('selectorH'))
 		
+		original_filter_image = PILImage.open(original_filter_url)
 		pil_image = PILImage.open(image.original_image.path)
+		original_filter_image = original_filter_image.crop((crop_x1, crop_y1, crop_x2, crop_y2,))
 		pil_image = pil_image.crop((crop_x1, crop_y1, crop_x2, crop_y2,))
+		original_filter_image.save(original_filter_thumbnail_url)
 		pil_image.save(thumbnail_url)
 		
 		return HttpResponse(json.dumps('ok'))
@@ -305,16 +322,25 @@ def save_upload(request, upload_batch_id):
 		temp_thumbnail_url = thumbnail_url.replace('thumbnail', 'temp_thumbnail')
 		thumbnail_image.save(temp_thumbnail_url)
 		
+		# Get original filter thumbnail url
+		original_thumbnail_url = settings.MEDIA_ROOT + '/' + image.original_filter_thumbnail.url
+		original_thumbnail_image = PILImage.open(original_thumbnail_url)
+		temp_original_thumbnail_url = original_thumbnail_url.replace('thumbnail', 'temp_thumbnail')
+		original_thumbnail_image.save(temp_original_thumbnail_url)
+		
 		image.caption = request.POST.get('caption-%d' % i)
 		image.client = request.POST.get('client-%d' % i)
 		image.display = request.POST.get('display-%d' % i, False) is not False
 		image.save()
 		original_url = settings.MEDIA_ROOT + '/' + image.original_filter.url
 		thumbnail_url = settings.MEDIA_ROOT + '/' + image.thumbnail.url
+		original_thumbnail_url = settings.MEDIA_ROOT + '/' + image.original_filter_thumbnail.url
 		pil_image.save(original_url)
 		thumbnail_image.save(thumbnail_url)
+		original_thumbnail_image.save(original_thumbnail_url)
 		os.remove(temp_original_url)
 		os.remove(temp_thumbnail_url)
+		os.remove(temp_original_thumbnail_url)
 		
 	upload_batch.saved = True
 	upload_batch.save()

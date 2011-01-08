@@ -12,6 +12,10 @@ def make_linear_ramp(white):
 		ramp.extend((r*i/255, g*i/255, b*i/255))
 	return ramp
 	
+def do_black_and_white(img):
+	img = PILImage.blend(img.convert('L').convert(img.mode), img, 0.0)
+	return img
+
 def do_sepia(img):
 	sepia = make_linear_ramp((255, 240, 192))
 	if img.mode != "L":
@@ -35,7 +39,7 @@ class ResizeFilterDisplay(processors.Resize):
 class BAWer(processors.ImageProcessor):
 	@classmethod
 	def process(cls, img, fmt, obj):
-		img = PILImage.blend(img.convert('L').convert(img.mode), img, 0.0)
+		img = do_black_and_white(img)
 		return img, fmt
 
 class Sepiaer(processors.ImageProcessor):
@@ -58,4 +62,8 @@ class Sepia(ImageSpec):
 	processors = [Sepiaer]
 
 class Thumbnail(ImageSpec):
+	processors = [ResizeThumb]
+
+class OriginalFilterThumbnail(ImageSpec):
+	access_as = 'original_filter_thumbnail'
 	processors = [ResizeThumb]
