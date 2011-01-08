@@ -182,6 +182,8 @@
 		}
 		
 		function onUpload(id, filename){
+			$j('#upload_save').addClass('hidden');
+			$j('#upload_cancel').addClass('hidden');
 			$j('#file-list').append('<li id="file-upload-'+id+'">'+filename+'<div id="progressBar' + id + '" style="height:15px; width:200px;"></div><div id="message-progressbar' + id + '"></div></li>');
 			$j( "#progressBar" + id ).progressbar({
 				value: 0
