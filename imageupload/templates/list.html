@@ -25,6 +25,10 @@
 		img.selected-img {
 			border-color: blue;
 		}
+		
+		.hidden {
+			display: none;
+		}
 	</style>
 {% endblock %}
 
@@ -167,6 +171,9 @@
 				$j.get(upload_cancel_url);
 				closeUploadDialog();
 			});
+			
+			$j('#upload_save').addClass('hidden');
+			$j('#upload_cancel').addClass('hidden');
 		});
 		
 		function closeUploadDialog(){
@@ -175,7 +182,7 @@
 		}
 		
 		function onUpload(id, filename){
-			$j('#file-list').append('<li id="file-upload-'+id+'">'+filename+'<div id="progressBar' + id + '" style="height:15px; width:200px;"></div></li>');
+			$j('#file-list').append('<li id="file-upload-'+id+'">'+filename+'<div id="progressBar' + id + '" style="height:15px; width:200px;"></div><div id="message-progressbar' + id + '"></div></li>');
 			$j( "#progressBar" + id ).progressbar({
 				value: 0
 			});
@@ -222,10 +229,24 @@
 				$j("#time-left").text("Uploading completed");
 			}
 			$j( "#progressBar" + id ).progressbar("value", percentage);
+			if (percentage == 100) {
+				$j("#message-progressbar" + id).html('Please wait.  Server is currently processing the file');
+			} else {
+				$j("#message-progressbar" + id).html('');
+			}
 		}
 		
 		function onUploadComplete(id, filename, response){
 			uploadingSize--;
+			$j("#message-progressbar" + id).html('');
+			if (uploadingSize > 0) {
+				$j('#upload_save').addClass('hidden');
+				$j('#upload_cancel').addClass('hidden');
+			}
+			else {
+				$j('#upload_save').removeClass('hidden');
+				$j('#upload_cancel').removeClass('hidden');
+			}
 
 			if(response['success']){
 				$j('#file-upload-'+id).html('<img src="'+response['thumbnail_url']+'?timestamp=' + (new Date().getTime()) + '" /><br/>'+
