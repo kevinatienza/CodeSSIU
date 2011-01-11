@@ -89,4 +89,8 @@ INSTALLED_APPS = (
     'core',
 )
 
+CONSUMER_KEY = 'yHM34L3mEVFLefe4G66Ng'
+
+CONSUMER_SECRET = 'm9QML6kdrtAelqZbrnFUNuR7mFATkDcsUh2mTVWe4Y'
+
 from local_settings import *
